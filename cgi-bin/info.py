@@ -23,7 +23,7 @@ import cgi
 import cgitb
 import json
 
-import pymysql
+import redis
 
 
 cgitb.enable()
@@ -41,84 +41,73 @@ for key in fs:
 def selData():
     # 请求查询全部数据
 
-    db = pymysql.connect('db.bobdu.cc', 'root', '123456', 'info_db',
-                         charset='utf8', cursorclass=pymysql.cursors.DictCursor)
-    cursor = db.cursor()
+    r = redis.Redis(host='db.bobdu.cc', decode_responses=True)
 
-    sql = 'select * from info'
-    cursor.execute(sql)
-    resData = cursor.fetchall()
+    userList = r.keys()
+
+    resData = []
+    for user in userList:
+        if user != 'id':
+            oneData = r.hgetall(user)
+
+            oneData['id'] = user
+            resData.append(oneData)
+
+            resData.sort(key=lambda x:int(x['id']))
 
     print(json.dumps(resData))
-    db.close()
 
 
 def delData():
     # 删除一条数据
 
-    db = pymysql.connect('db.bobdu.cc', 'root', '123456', 'info_db',
-                         charset='utf8', cursorclass=pymysql.cursors.DictCursor)
-    cursor = db.cursor()
-
+    r = redis.Redis(host='db.bobdu.cc', decode_responses=True)
     id2 = reqData['id']
-    sql = f'delete from info where id = {id2}'
-    cursor.execute(sql)
-    db.commit()
+
+    r.delete(id2)
+
     print(json.dumps({'status': 1}))
-    db.close()
+
 
 
 def insData():
     # 添加一条数据
 
-    db = pymysql.connect('db.bobdu.cc', 'root', '123456', 'info_db',
-                         charset='utf8', cursorclass=pymysql.cursors.DictCursor)
-    cursor = db.cursor()
+    r = redis.Redis(host='db.bobdu.cc', decode_responses=True)
+    r.setnx('id', 0)
+    r.incr('id')
 
-    name = reqData['name']
-    sex = reqData['sex']
-    age = reqData['age']
-    email = reqData['email']
-    sql = f'insert into info value (null, "{name}", {sex}, {age}, "{email}")'
-    cursor.execute(sql)
-    db.commit()
+    id2 = r.get('id')
+    del reqData['req']
+    r.hmset(id2, reqData)
+
     print(json.dumps({'status': 1}))
-    db.close()
 
 
 def updData1():
     # 更新一条数据 先获取内容
 
-    db = pymysql.connect('db.bobdu.cc', 'root', '123456', 'info_db',
-                         charset='utf8', cursorclass=pymysql.cursors.DictCursor)
-    cursor = db.cursor()
+    r = redis.Redis(host='db.bobdu.cc', decode_responses=True)
 
     id2 = reqData['id']
-    sql = f'select * from info where id = {id2}'
-    cursor.execute(sql)
-    resData = cursor.fetchone()
+
+    resData = r.hgetall(id2)
+    resData['id'] = id2
 
     print(json.dumps(resData))
-    db.close()
 
 
 def updData2():
     # 更新一条数据 提交更新内容
 
-    db = pymysql.connect('db.bobdu.cc', 'root', '123456', 'info_db',
-                         charset='utf8', cursorclass=pymysql.cursors.DictCursor)
-    cursor = db.cursor()
-
     id2 = reqData['id']
-    name = reqData['name']
-    sex = reqData['sex']
-    age = reqData['age']
-    email = reqData['email']
-    sql = f'update info set name = "{name}", sex = {sex}, age = {age}, email = "{email}" where id = {id2}'
-    cursor.execute(sql)
-    db.commit()
+    r = redis.Redis(host='db.bobdu.cc', decode_responses=True)
+
+    del reqData['req'], reqData['id']
+
+    r.hmset(id2, reqData)
+
     print(json.dumps({'status': 1}))
-    db.close()
 
 
 if reqData['req'] == '1':

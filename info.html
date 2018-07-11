@@ -28,7 +28,8 @@
                     <tr v-for="(oneInfo, index) in allInfo">
                         <td>{{oneInfo.id}}</td>
                         <td>{{oneInfo.name}}</td>
-                        <td>{{oneInfo.sex}}</td>
+                        <td v-if:one.sex>男</td>
+                        <td v-else>女</td>
                         <td>{{oneInfo.age}}</td>
                         <td>{{oneInfo.email}}</td>
                         <td>
@@ -158,7 +159,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal">取消修改</button>
-                    <button type="button" class="btn btn-primary" @click.prevent="insertOne">确认修改</button>
+                    <button type="button" class="btn btn-primary" @click.prevent="updateCi">确认修改</button>
                 </div>
             </div>
         </div>

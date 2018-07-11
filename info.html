@@ -28,7 +28,7 @@
                     <tr v-for="(oneInfo, index) in allInfo">
                         <td>{{oneInfo.id}}</td>
                         <td>{{oneInfo.name}}</td>
-                        <td v-if:one.sex>男</td>
+                        <td v-if="oneInfo.sex == '1'">男</td>
                         <td v-else>女</td>
                         <td>{{oneInfo.age}}</td>
                         <td>{{oneInfo.email}}</td>

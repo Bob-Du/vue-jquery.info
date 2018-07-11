@@ -11,18 +11,20 @@ var app = new Vue({
     methods: {
         delOne: function(id){
             this.$http.get('./cgi-bin/info.py',{params: {req: 2, id: id}}).then(function(res){
-                alert('删除成功');
-                this.flush();
+                if(res.body.status == 1){
+                    alert('删除成功');
+                    this.flush(); 
+                }
             });
         },
         toUpdateOne: function(id){
+            $('#updateModal').modal()
             update.updateOne(id)
         },
         flush: function(){
             this.$http.get('./cgi-bin/info.py', {params: {req: 1}}).then(function(res){
                 this.allInfo = res.body;
             });
-            console.log('flush');
         },
     },
 })

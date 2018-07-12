@@ -24,6 +24,7 @@ import cgitb
 import json
 
 import pymysql
+import redis
 
 
 cgitb.enable()
@@ -41,17 +42,22 @@ for key in fs:
 def selData():
     # 请求查询全部数据
 
-    db = pymysql.connect('db.bobdu.cc', 'root', '123456', 'info_db',
-                         charset='utf8', cursorclass=pymysql.cursors.DictCursor)
-    cursor = db.cursor()
+    r = redis.Redis(host='db.bobdu.cc', port=6379, decode_responses=True)
 
-    sql = 'select * from info'
-    cursor.execute(sql)
-    resData = cursor.fetchall()
+    if r.exists('cache'):
+        resData = eval(r.get('cache'))
+    else:
+        db = pymysql.connect('db.bobdu.cc', 'root', '123456', 'info_db',
+                             charset='utf8', cursorclass=pymysql.cursors.DictCursor)
+        cursor = db.cursor()
+
+        sql = 'select * from info'
+        cursor.execute(sql)
+        resData = cursor.fetchall()
+        db.close()
+        r.setex('cache', resData, 3)
 
     print(json.dumps(resData))
-    db.close()
-
 
 def delData():
     # 删除一条数据

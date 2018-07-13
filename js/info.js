@@ -39,7 +39,6 @@ var insert = new Vue({
     },
     methods: {
         insertOne: function(){
-            console.log(this.name)
             this.$http.get('./cgi-bin/info.py', {params: {
                 req: 3,
                 name: this.name,
@@ -48,8 +47,13 @@ var insert = new Vue({
                 email: this.email
             }}).then(function(res){
                 if(res.body.status == 1){
-                    alert('添加成功!!')
+                    alert('添加成功!!');
                     app.flush();
+                    this.name =  '';
+                    this.sex =  null;
+                    this.age =  null;
+                    this.email =  '';
+                    $('#insertModal').modal('hide');
                 }
             })
         }
@@ -91,6 +95,11 @@ var update = new Vue({
                 if(res.body.status == 1){
                     alert('修改成功!!');
                     app.flush();
+                    this.name =  '';
+                    this.sex =  null;
+                    this.age =  null;
+                    this.email =  '';
+                    $('#updateModal').modal('hide');
                 }
             })
         }

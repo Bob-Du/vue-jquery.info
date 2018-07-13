@@ -13,6 +13,17 @@
 <body>
     <h1 class="text-center">信息管理系统</h1>
     <div class="container">
+
+        <!-- 添加信息按钮 -->
+        <div class="row">
+            <div class="col-md-1 col-md-offset-8">
+                <button type="button" class="btn btn-primary btn-lg center-block" data-toggle="modal" data-target="#insertModal" id="btnInsert">
+                    添加信息
+                </button>
+            </div>
+        </div>
+
+        <!-- 数据表格 -->
         <div class="row">
             <div class="col-md-8 col-md-offset-2">
                 <table class="table table-bordered" id="app">
@@ -41,16 +52,7 @@
             </div>
         </div>
 
-
-        <div class="row">
-            <div class="col-md-1 col-md-offset-2">
-                <!-- 一个添加信息的模态框的启动按钮 -->
-                <button type="button" class="btn btn-primary btn-lg center-block" data-toggle="modal" data-target="#insertModal">
-                    添加信息
-                </button>
-            </div>
-        </div>
-
+    </div>
 
     <!-- Modal 添加信息的模态框 -->
     <div class="modal fade" id="insertModal" tabindex="-1" role="dialog" aria-labelledby="insertModalLabel">

@@ -25,7 +25,7 @@ import cgi
 import cgitb
 import json
 
-import pymysql
+import pymongo
 import redis
 
 
@@ -49,14 +49,10 @@ def selData():
     if r.exists('cache'):
         resData = eval(r.get('cache'))
     else:
-        db = pymysql.connect('db.bobdu.cc', 'root', '123456', 'info_db',
-                             charset='utf8', cursorclass=pymysql.cursors.DictCursor)
-        cursor = db.cursor()
-
-        sql = 'select * from info'
-        cursor.execute(sql)
-        resData = cursor.fetchall()
-        db.close()
+        mongoclient = pymongo.MongoClient('db.bobdu.cc', 27017)
+        db = mongoclient.infoapp
+        resData = list(db.info.find({},
+            {'_id': 0, 'id': 1, 'name': 1, 'age': 1, 'email': 1}))
         r.setex('cache', resData, 3)
 
     print(json.dumps(resData))
@@ -64,69 +60,79 @@ def selData():
 def delData():
     # 删除一条数据
 
-    db = pymysql.connect('db.bobdu.cc', 'root', '123456', 'info_db',
-                         charset='utf8', cursorclass=pymysql.cursors.DictCursor)
-    cursor = db.cursor()
+    mongocliet = pymongo.MongoClient('db.bobdu.cc', 27017)
+    db = mongocliet.infoapp
 
-    id2 = reqData['id']
-    sql = f'delete from info where id = {id2}'
-    cursor.execute(sql)
-    db.commit()
+    id2 = int(reqData['id'])
+    db.info.remove({'id': id2})
     print(json.dumps({'status': 1}))
-    db.close()
 
 
 def insData():
     # 添加一条数据
 
-    db = pymysql.connect('db.bobdu.cc', 'root', '123456', 'info_db',
-                         charset='utf8', cursorclass=pymysql.cursors.DictCursor)
-    cursor = db.cursor()
+    mongoclient = pymongo.MongoClient('db.bobdu.cc', 27017)
+    db = mongoclient.infoapp
 
-    name = reqData['name']
-    sex = reqData['sex']
-    age = reqData['age']
-    email = reqData['email']
-    sql = f'insert into info value (null, "{name}", {sex}, {age}, "{email}")'
-    cursor.execute(sql)
-    db.commit()
+    newIdList = list(db.new.find())
+    if newIdList:
+        newId = newIdList[0]['newId']
+        db.new.update(
+            {'newId': newId},
+            {
+                '$set': {'newId': newId + 1}
+            }
+        )
+    else:
+        newId = 1
+        db.new.insert({'newId': 2})
+
+    del reqData['req']
+    reqData['id'] = newId
+    reqData['age'] = int(reqData['age'])
+    db.info.insert(reqData)
+
     print(json.dumps({'status': 1}))
-    db.close()
 
 
 def updData1():
     # 更新一条数据 先获取内容
 
-    db = pymysql.connect('db.bobdu.cc', 'root', '123456', 'info_db',
-                         charset='utf8', cursorclass=pymysql.cursors.DictCursor)
-    cursor = db.cursor()
+    mongoclient = pymongo.MongoClient('db.bobdu.cc', 27017)
+    db = mongoclient.infoapp
 
-    id2 = reqData['id']
-    sql = f'select * from info where id = {id2}'
-    cursor.execute(sql)
-    resData = cursor.fetchone()
+    id2 = int(reqData['id'])
+    resData = dict(db.info.find({'id': id2},
+        {'_id': 0, 'id': 1, 'name': 1, 'age': 1, 'email': 1})[0])
 
     print(json.dumps(resData))
-    db.close()
 
 
 def updData2():
     # 更新一条数据 提交更新内容
 
-    db = pymysql.connect('db.bobdu.cc', 'root', '123456', 'info_db',
-                         charset='utf8', cursorclass=pymysql.cursors.DictCursor)
-    cursor = db.cursor()
+    mongoclient = pymongo.MongoClient('db.bobdu.cc', 27017)
+    db = mongoclient.infoapp
 
-    id2 = reqData['id']
+    id2 = int(reqData['id'])
     name = reqData['name']
     sex = reqData['sex']
-    age = reqData['age']
+    age = int(reqData['age'])
     email = reqData['email']
-    sql = f'update info set name = "{name}", sex = {sex}, age = {age}, email = "{email}" where id = {id2}'
-    cursor.execute(sql)
-    db.commit()
+
+    db.info.update(
+        {'id': id2},
+        {
+            '$set': {
+                'name': name,
+                'sex': sex,
+                'age': age,
+                'email': email
+            }
+        }
+    )
+
     print(json.dumps({'status': 1}))
-    db.close()
 
 
 if reqData['req'] == '1':
